@@ -64,7 +64,7 @@ class Simulation(object):
         self.parental_leave = parental_leave
         self.worker_idx = 1
                 
-    def hire_workers(self, all_male = False, all_female = False):
+    def hire_workers(self, all_male = False, all_female = False, pt = False):
         level = max(self.worker_db.keys())
         
         while level >= 1:
@@ -73,6 +73,8 @@ class Simulation(object):
                                      self.male_productivity, self.female_productivity, \
                                         all_male, all_female)
                 self.worker_idx += 1
+                if pt:
+                    print("Hire made at level: ", level)
             level -= 1
 
     def level_gender_distribution(self, worker_level):
@@ -152,10 +154,10 @@ class Simulation(object):
                 
         
         # Promote to fill ranks:  
-        self.promotion_process(self.worker_db,self.leave_db, alpha, gamma, n=10)
+        self.promotion_process(self.worker_db,self.leave_db, alpha, gamma, pt=False, n=4)
         
         # Add new hires to fill out staff:
-        self.hire_workers()
+        self.hire_workers(pt=False)
 
     
     def run_simulation(self, prnt=False):
