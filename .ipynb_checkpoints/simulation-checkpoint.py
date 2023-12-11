@@ -115,10 +115,10 @@ class Simulation(object):
         print("population male: %i, population female: %i, total: %i \n" % (count_male, count_female, total))
         
     def get_steady_state_gender_dist(self):
-        ss = 20
+        ss = 15
         ss_mean = np.zeros(5)
         for level in range(1,5):
-            ss_mean[level] = sum(self.male_round_gender_dists[level-1][i] \
+            ss_mean[level] = sum(self.round_gender_dists[level-1][i] \
                                  for i in range(ss,self.num_rounds+1)) / (self.num_rounds+1-ss)
         return ss_mean
             
@@ -171,7 +171,7 @@ class Simulation(object):
     
     def run_simulation(self, prnt=False):
         
-        self.hire_workers()
+        self.hire_workers(all_female=True)
         
         for level in range(1,5):
                 self.male_round_gender_dists[level-1].append(self.level_gender_distribution(self.worker_db[level])[0])
