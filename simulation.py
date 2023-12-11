@@ -142,7 +142,7 @@ class Simulation(object):
         
         for level in self.worker_db.keys():
             if self.sim_type == "base":
-                self.worker_db[level].sort(key=wr.Worker.get_index)
+                self.worker_db[level].sort(key=wr.Worker.get_time_on_level, reverse=True)
             elif self.sim_type == "logit":
                 self.worker_db[level].sort(key=wr.Worker.get_time_on_level, reverse=True)
             elif self.sim_type == "prod":
