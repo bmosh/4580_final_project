@@ -9,7 +9,8 @@ class Simulation(object):
     """
     
     def __init__(self, sim_type, level_sizes, leaving_process, \
-                 hiring_process, promotion_process, alpha, gamma, male_productivity, female_productivity, parental_leave=False,
+                 hiring_process, promotion_process, alpha, gamma, male_productivity, female_productivity, 
+                 parental_leave=False, parental_leave_process=None,
                  round_length=10, num_rounds=6):
         
         self.work_levels = work_levels = {
@@ -51,6 +52,7 @@ class Simulation(object):
         self.leaving_process = leaving_process
         self.hiring_process = hiring_process
         self.promotion_process = promotion_process
+        self.parental_leave_process = parental_leave_process
 
         self.alpha = alpha
         self.gamma = gamma
@@ -146,7 +148,7 @@ class Simulation(object):
         self.leaving_process(self.worker_db)
         
         if self.parental_leave:
-            self.base_check_leave(self.worker_db, self.leave_db)
+            self.parental_leave_process(self.worker_db, self.leave_db)
         else:
             for level in self.leave_db.keys():
                 assert len(self.leave_db[level]) == 0

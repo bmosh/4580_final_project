@@ -55,7 +55,7 @@ class Worker(object):
     def det_go_on_leave(self):
         u = np.random.uniform()
         
-        if self.get_gender() == 1:
+        if self.is_male():
             if self.age < 25:
                 if u < .01:
                     self.set_leave_time()
