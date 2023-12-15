@@ -1,65 +1,42 @@
-4580 Final Project (FA23):
+# Simulation Application, Overview:
 
-Simulating gender-based bias in the workplace:
-
-The aim of the project is to use simulation modeling to study gender disparities in corporations,
-and to perform counterfactual studies to understand how this can be remedied.
+## Model Explanation:
 
 The model for the corporate form as implemented in the base simulation is as follows:
 
-- The employees are classified into four levels: executives (E), senior-management (S),
-management (M) and junior employees (J). The model takes as input a variable target num-
-ber of employees at each level, which is customizable to allow for examination of the model
-as it applies to businesses both large and small
+Each employee is represented by an object of the Worker class. This Worker object stores information vital to the simulation, such as an employee’s index, gender, work level, productivity, time-on-level, and more. These metrics are frequently called upon during the simulation to determine which employees leave or receive a promotion with each iteration.
 
-- Each employee in level i ∈ {E, S, M, J} independently retires/leaves the company after
-some Exp(λ + K) time, where λ is the mean gender stay time, and K is the mean level stay time. 
-Note that λ+K acts as a **MEAN** parameter. The rate of departures are **LOWER** at higher levels (so K_E ≥
-K_S ≥ K_M ≥ K_J ), as we believe there is more churn at lower levels, and senior level employees are more 
-likely to remain at the company for longer. This value is RESET every time an employee is promoted, as their
-happiness with the company is boosted following their promotion.
+There are four levels that the workers are then classified into, listed from most to least senior: executives (E), senior-management (S), management (M) and junior employees (J). The model takes as input a variable target number of employees at each level, which is customizable to allow for examination of the model as it applies to businesses both large and small. At the start of the simulation, each level is filled with new hires, with each hire being randomly assigned a gender with equal probability of being labeled a man or woman.
 
-- The mean gender-staying time λ is a gender specific component;
-in particular, there is evidence that women drop out faster than men (in particular, at
-junior levels) due to childbirth and familial commitments. We chose to model this by saying
-a woman at level L has an lower mean parameter λ for remaining with the company, and therefore is
-more likely to exit the company at a sooner time.
+Each employee in level l ∈ {E, S, M, J} independently retires/leaves the company aftersome Exp(λ + Kl) time, where λ is the mean gender stay time, and K_l is the mean level stay time. 
+Note that λ+Kl acts as a mean parameter, and thus a larger sum results in a higher likelihood of a longer stay-time. The rate of departures are lower at higher levels (so KE ≥ KS ≥ KM ≥ KJ), as we believe there is more churn at lower levels, and senior level employees are more likely to remain at the company for longer. This value is originally assigned with the creation of the worker object, and is reset every time an employee is promoted, as their happiness with the company is boosted following their promotion. All of the parameter values are easily modifiable, and can be adjusted as such to represent different model scenarios at the operator’s discretion. 
 
-- When an executive-level employee retires/leaves, the vacant position is filled by promot-
-ing some chosen senior-manager. Similarly, any vacancy created at a lower level either
-due to a promotion or a departure is immediately filled by promoting an employee from
-the lower level. 
+The mean gender-staying time λ is a gender specific component, created as such to represent the case that women drop out faster than men (in particular, at junior levels) due to childbirth and familial commitments, hostile work environments, and more. We chose to model this by saying a woman at level L has a lower mean parameter λ for remaining with the company, and therefore is more likely to exit the company at a sooner time.
 
-- There are several promotion schemes that we test to attempt mitigation of 
-disproportionate gender distribution, including promoting based on the most senior employee option,
-promoting based on a logit-combination of time-on-level and gender, and promoting based on a logit 
-function of worker productivity.
+When an executive-level employee retires/leaves, the vacant position is filled by promoting some chosen senior-manager. Similarly, any vacancy created at any level above Junior for any reason is immediately filled by promoting an employee from the level directly below it. There are several promotion schemes that we test to attempt mitigation of disproportionate gender distribution, including promoting based on the most senior employee option, promoting based on a logit-combination of time-on-level and gender, and promoting based on a logit function of worker productivity. Junior-level vacancies are filled by immediately hiring new employees, under the assumption that there is an infinite pool of such potential hires to choose from. 
 
-- Junior-level vacancies are filled by immediately hiring ne.w employees, under the assumption that
-there is an infinite pool of such potential hires
+We also test out the impact of maternity-leave within a company, in some trials giving women a small likelihood of being placed on leave for familial reasons, calculated based on their listed age. Age is a worker quality that is randomly determined with influence from their initial level- calculated as 12*[level] + randint(10,30). When placed on leave, an employee will return w.p. .49, (leave time distributed from 2 months to 2 years), or leave the company, w.p. .51. If an employee is placed on leave, their spot is not filled, and the company will operate shorthanded until their return. If an employee leaves in this manner, then their spot is immediately filled via promotion or new-hire. 
 
-- We also test out the impact of maternity-leave within a company, in some trials giving women a small likelihood 
-of being placed on leave for familial reasons, depending on their listed age. These slots are left unfilled until their return w.p. .49, (distributed from 
-2 months to 2 years), or their leaving of the company w.p. .51.
+## Simulation Breakdown:
 
+The simulation model, also with its own custom class, is defined by a set of arguments included in the initialization of a new simulation object. In the general case, these arguments cover the parameters sim_type, level_sizes, leaving_process, hiring_process, promotion_process, alpha, gamma, male_productivity, female_productivity, parental_leave, round_length, and num_rounds.
 
+In the FP_Demo notebook, there is currently a dictionary sim_types that contains keys of sim_type (‘base’, ‘logit’, and ‘prod’) bound to combinations of leaving_process, hiring_process, promotion_process, that were most commonly examined as part of this report. This was done to streamline the testing process and make it easier for a less-experienced operator to see the difference between these cases. As the names suggest, these process parameters refer to functions that are passed into the model that determine the employee leaving, hiring, and promotion behaviors respectively.
 
-The project file structure is as follows:
+Parameters alpha and gamma are sensitivity-based float parameters that affect the performance of the logit-based promotion model. Their impact is defined more thoroughly in the section explaining various promotion schemes. Parameters male_productivity and female_productivity are similar parameters that affect the worker-productivity based, or ‘prod’ promotion scheme. However, these parameters take on the form of a 2-part tuple when applied as arguments, with the first element becoming the mean value for a male or female worker’s productivity, and the second element becoming the variance.
 
-- FP_v1 ... FP_v4 are the WIP files from different stages of our project's development:
-    - FP_v1 contains the original simulation code. This code is rudimentary and only supports a worker class
-    and a simple hiring/promoting/leaving scheme.
-    - FP_v2 adds in a simulation class that vastly improves the testing process- Now, we are able to pass-in
-    various hiring/promoting/leaving schemes as we'd like, and automatically output PyPlot visualizations of
-    the gender distributions at trial's end.
-    - FP_v3 builds on v2, adding in the ability to run many repeated trials, while saving relevant information 
-    to a CSV for further analysis. 
-    - FP_v4 is the final main feature improvement stage, adding in maternity leave and vastly simplifying the
-    process of selecting which kind of trial is to be run for creating large datasets.
+Parameter parental_leave is a boolean variable that determines whether maternity leave policies are applied in the simulation, with a value of True turning them on, and a value of False turning them off. 
 
-- FP_Demo is a beautified version of FP_v4, retaining the key features of the simulation while splitting up
-the simulation and worker classes into their own python files (simulation.py, worker.py), which was further 
-optimized to remove redundancies and improve overall performance. It also features more detailed and readable
-graphs to summarize gender distribution info.
+Lastly, variables round_length, and num_rounds determine how long each simulation round is, and how many rounds a simulation will run for. 
 
+Once a simulation is created, the Simulation.run_simulation() function places it into action. First, the initial set of workers is hired using the hiring_process function. Then, an initial snapshot of the gender distribution across all levels of the simulation is taken. Unless it is explicitly 
 
+determined otherwise, this gender distribution should be relatively equal on all levels, with slight variation due to variability of the 50-50 new-hiring process. Next, the start time is recorded, and the actual simulation begins. For the num_rounds specified, while the round_length time has not been reached, the workforce is repeatedly updated, and the leaving_process, promotion_process, and hiring_process are called in order to adjust the workforce accordingly.
+
+When the round is over, another snapshot of the overall gender distribution is taken. As the simulation goes on, it approaches the steady-state for gender distribution for the set parameters. Note that just a slight change in the parameters can have a drastic effect on this gender distribution.
+
+When all rounds are complete, the gender-distribution snapshots are visualized in graph form, displaying male v. female proportion in the workforce at different levels over time, with overlaid reference lines for a 50-50 split, the overall mean proportion of men, and the steady-state distribution.
+
+## Project File Structure:
+
+FP_v1 ... FP_v4 are Work-In-Progress (WIP) files from different stages of our project's development FP_v1 contains the original simulation code. This code is rudimentary and only supports a worker class and a simple hiring/promoting/leaving scheme. FP_v2 adds in a simulation class that vastly improves the testing process- Now, we are able to pass-in various hiring/promoting/leaving schemes as we'd like, and automatically output PyPlot visualizations of the gender distributions at trial's end. FP_v3 builds on v2, adding in the ability to run many repeated trials, while saving relevant information to a CSV for further analysis. FP_v4 is the final main feature improvement stage, adding in maternity leave and vastly simplifying the process of selecting which kind of trial is to be run for creating large datasets. FP_Demo is a beautified version of FP_v4, retaining the key features of the simulation while splitting up the simulation and worker classes into their own python files (simulation.py, worker.py), which was further optimized to remove redundancies and improve overall performance. It also features more detailed and readable graphs to summarize gender distribution information.
